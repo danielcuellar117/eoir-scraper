@@ -11,17 +11,21 @@ const { run }               = require('./scraper');
 puppeteer.use(Stealth());
 
 ;(async () => {
-  // 1) Autenticación con JWT
-  console.log('🔑 Autenticando en Google Sheets con JWT...');
+  // ──────────────────────────────────────────────────────────────────────────
+  // 1) Autenticación manual con JWT
+  // ──────────────────────────────────────────────────────────────────────────
+  console.log('🔑 Autenticando en Google Sheets con JWT…');
   const creds = JSON.parse(process.env.SHEETS_CREDENTIALS);
-  const client = new JWT({
+  const jwtClient = new JWT({
     email: creds.client_email,
-    key: creds.private_key.replace(/\\n/g, '\n'),
-    scopes: ['https://www.googleapis.com/auth/spreadsheets']
+    key:   creds.private_key.replace(/\\n/g, '\n'),
+    scopes: ['https://www.googleapis.com/auth/spreadsheets'],
   });
+  await jwtClient.authorize();
 
-  // 2) Cargar documento y pestañas
-  const doc = new GoogleSpreadsheet(process.env.SHEET_ID, client);
+  // 2) Instanciamos el doc y le inyectamos nuestro cliente JWT
+  const doc = new GoogleSpreadsheet(process.env.SHEET_ID);
+  doc.auth = jwtClient;
   await doc.loadInfo();
   console.log(`🏷️ Hoja cargada: "${doc.title}"`);
   console.log('📑 Pestañas disponibles:', Object.keys(doc.sheetsByTitle));
@@ -33,24 +37,22 @@ puppeteer.use(Stealth());
     process.exit(1);
   }
 
-  // 2.a) Cargar headers de Resultados (para asegurar nombres de columnas)
+  // 2.a) Aseguramos headers en “Resultados”
   await resultados.loadHeaderRow();
   console.log('🗂️ Headers de "Resultados":', resultados.headerValues);
 
-  // 3) Leer filas de Entradas
+  // 3) Leemos las filas de “Entradas” y averiguamos columna A_Number
   const rowsIn = await entradas.getRows();
   console.log(`✅ Filas leídas en "Entradas": ${rowsIn.length}`);
   console.log('🗂️ Encabezados de "Entradas":', entradas.headerValues);
-
-  // 3.b) Indice de la columna A-Number en _rawData
   const aColIndex = entradas.headerValues.findIndex(h => /^(A[#_ ]?number|A#)$/i.test(h));
   if (aColIndex === -1) {
-    console.error('❌ No encontré columna "A_Number" o "A#" en los encabezados');
+    console.error('❌ No encontré columna "A_Number" o "A#" en los encabezados de Entradas');
     process.exit(1);
   }
   console.log('✅ A-Number en column index:', aColIndex, 'header:', entradas.headerValues[aColIndex]);
 
-  // 4) Iniciar Puppeteer
+  // 4) Arrancamos Puppeteer (local vs GH Actions)
   console.log('🚀 Iniciando navegador…');
   const isGH = Boolean(process.env.GITHUB_ACTIONS);
   let executablePath = process.env.PUPPETEER_EXECUTABLE_PATH || null;
@@ -75,18 +77,16 @@ puppeteer.use(Stealth());
   });
   const [page] = await browser.pages();
 
-  // 5) Iterar y scrapear cada A-Number
+  // 5) Iteramos cada A-Number, scrapeamos y volcamos en “Resultados”
   for (let i = 0; i < rowsIn.length; i++) {
     const rawANum = String(rowsIn[i]._rawData[aColIndex] || '').trim();
     const aNumber = rawANum.replace(/\D/g, '');
-
     if (!/^\d{9}$/.test(aNumber)) {
       console.log(`⚠️ A-Number inválido fila ${i+1}: "${rawANum}" → "${aNumber}" (skip)`);
       continue;
     }
 
     console.log(`\n🔍 Procesando A-Number ${aNumber} (fila ${i+1})`);
-
     let data;
     try {
       console.log('▶️ Llamando a scraper.run()');
@@ -94,7 +94,7 @@ puppeteer.use(Stealth());
       console.log('📋 Raw extraído:\n', await page.$eval('div.p-8', el => el.innerText.trim()));
       console.log('  Objeto parseado:', data);
 
-      // 6) Si todo va bien, agregamos fila normal:
+      // 6.a) Si OK, agregamos fila completa
       await resultados.addRow({
         A_Number:       rawANum,
         Nombre:         data.nombre,
@@ -106,16 +106,16 @@ puppeteer.use(Stealth());
         Telefono:       data.telefono,
         Fecha_Consulta: new Date().toISOString().split('T')[0]
       });
-      console.log(`✅ Fila ${i+1} agregada a "Resultados" con datos`);
+      console.log(`✅ Fila ${i+1} agregada con datos`);
 
     } catch (err) {
-      // 7) En caso de error (timeout u otro), registramos sólo A_Number + mensaje en Estado_Caso
+      // 6.b) Si hay error (p. ej. timeout), volcamos sólo A_Number + mensaje en Estado_Caso
       console.error(`❌ Error en scraper.run() fila ${i+1} (${aNumber}):`, err.message);
       await resultados.addRow({
         A_Number:    rawANum,
         Estado_Caso: 'No hay información de caso para este número de extranjero'
       });
-      console.log(`💾 Fila ${i+1} agregada con mensaje “No hay información de caso…”`);
+      console.log(`💾 Fila ${i+1} agregada con mensaje de error`);
     }
   }
 
