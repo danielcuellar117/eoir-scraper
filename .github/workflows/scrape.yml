@@ -1,0 +1,37 @@
+name: EOIR Scraper → Google Sheets
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 8 * * *'  # cada día a las 08:00 UTC
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v3
+
+      - name: ⚙️ Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: 🛠️ Install system deps (Chromium)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y chromium-browser
+
+      - name: 📦 Install NPM dependencies
+        run: npm ci
+
+      - name: 🚀 Run scraper → Google Sheets
+        env:
+          SHEETS_CREDENTIALS: ${{ secrets.SHEETS_CREDENTIALS }}
+          SHEET_ID:            ${{ secrets.SHEET_ID }}
+          GITHUB_ACTIONS:      true
+          PUPPETEER_EXECUTABLE_PATH: /usr/bin/chromium-browser
+        run: npm run test-scraper
