@@ -15,7 +15,7 @@ puppeteer.use(Stealth());
   // 1) Autenticación manual con JWT
   // ──────────────────────────────────────────────────────────────────────────
   console.log('🔑 Autenticando en Google Sheets con JWT…');
-const creds = JSON.parse(Buffer.from(process.env.SHEETS_CREDENTIALS));
+const creds = JSON.parse(Buffer.from(process.env.SHEETS_CREDENTIALS).toString());
   const jwtClient = new JWT({
     email: creds.client_email,
     key:   creds.private_key.replace(/\\n/g, '\n'),
