@@ -1,11 +1,10 @@
-const chromium = require('chrome-aws-lambda');
-const puppeteer = require('puppeteer-core');
 
 module.exports.run = async function(page, a_number) {
   // 1. Navegar a la página
-   console.log('🏁 scraper.run INICIO para:', a_number);
+  console.log('🏁 scraper.run INICIO para:', a_number);
   await page.goto('https://acis.eoir.justice.gov/es', { waitUntil: 'domcontentloaded' });
   console.log('✅ página cargada:', page.url());
+
 
   // 2. Aceptar modal de cookies si aparece
   try {
