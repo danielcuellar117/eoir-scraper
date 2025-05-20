@@ -67,8 +67,7 @@ let args = [
   '--disable-features=IsolateOrigins,site-per-process',
   '--window-size=1920,1080',
   '--start-maximized',
-  '--disable-blink-features=AutomationControlled',
-  '--headless=new'
+  '--disable-blink-features=AutomationControlled'
 ];
 
 // Si no se define PUPPETEER_EXECUTABLE_PATH, usamos el default de Chrome local
@@ -88,7 +87,7 @@ const browser = await puppeteer.launch({
   executablePath,
   args,
   ignoreDefaultArgs: ['--enable-automation'],
-  headless: true,
+  headless: false,
   defaultViewport: null
 });
 
