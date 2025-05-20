@@ -52,30 +52,45 @@ const creds = JSON.parse(Buffer.from(process.env.SHEETS_CREDENTIALS).toString())
   }
   console.log('✅ A-Number en column index:', aColIndex, 'header:', entradas.headerValues[aColIndex]);
 
-  // 4) Arrancamos Puppeteer (local vs GH Actions)
-  console.log('🚀 Iniciando navegador…');
-  const isGH = Boolean(process.env.GITHUB_ACTIONS);
-  let executablePath = process.env.PUPPETEER_EXECUTABLE_PATH || null;
-  const args = ['--no-sandbox','--disable-setuid-sandbox','--disable-dev-shm-usage'];
-  if (isGH) {
-  executablePath = '/usr/bin/chromium-browser';
-  args.push('--headless=new');
-} else if (!executablePath) {
-    executablePath = await chromium.executablePath;
-  }
-  if (!executablePath) {
-    console.error('❌ No pude determinar executablePath de Chromium');
-    process.exit(1);
-  }
-  console.log('⚙️ Usando executablePath:', executablePath);
+// 4) Arrancamos Puppeteer (local vs GH Actions - Windows con Chrome)
+console.log('🚀 Iniciando navegador…');
+const isGH = Boolean(process.env.GITHUB_ACTIONS);
 
-  const browser = await puppeteer.launch({
-    executablePath,
-    args,
-    headless: isGH,
-    defaultViewport: chromium.defaultViewport
-  });
-  const [page] = await browser.pages();
+let executablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
+let args = [
+  '--no-sandbox',
+  '--disable-setuid-sandbox',
+  '--disable-dev-shm-usage',
+  '--disable-gpu',
+  '--disable-infobars',
+  '--disable-accelerated-2d-canvas',
+  '--disable-features=IsolateOrigins,site-per-process',
+  '--window-size=1920,1080',
+  '--single-process'
+];
+
+// Si no se define PUPPETEER_EXECUTABLE_PATH, usamos el default de Chrome local
+if (!executablePath) {
+  executablePath = 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'; // Windows local
+}
+
+if (isGH) {
+  // GitHub Actions en Windows usa esta misma ruta, ya viene preinstalado
+  executablePath = 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
+  args.push('--headless=new');
+}
+
+console.log('⚙️ Usando executablePath:', executablePath);
+
+const browser = await puppeteer.launch({
+  executablePath,
+  args,
+  headless: isGH,
+  defaultViewport: null
+});
+
+const [page] = await browser.pages();
+
 
   // 5) Iteramos cada A-Number, scrapeamos y volcamos en “Resultados”
   for (let i = 0; i < rowsIn.length; i++) {
