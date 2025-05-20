@@ -1,37 +1,34 @@
-name: EOIR Scraper → Google Sheets
+name: EOIR Scraper → Google Sheets (Windows)
 
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 8 * * *'  # cada día a las 08:00 UTC
+    - cron: '0 8 * * *'  # Ejecutar todos los días a las 8:00 UTC
 
 jobs:
   scrape:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     timeout-minutes: 30
 
-    steps:
-      - name: 📥 Checkout repository
-        uses: actions/checkout@v3
+    env:
+      SHEETS_CREDENTIALS_BASE64: ${{ secrets.SHEETS_CREDENTIALS }}
+      SHEET_ID: ${{ secrets.SHEET_ID }}
+      GITHUB_ACTIONS: true
+      # Ruta típica de instalación de Google Chrome en Windows
+      PUPPETEER_EXECUTABLE_PATH: 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'
 
-      - name: ⚙️ Setup Node.js
+    steps:
+      - name: 📥 Checkout del repositorio
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Configurar Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '18'
           cache: 'npm'
 
-      - name: 🛠️ Install system deps (Chromium)
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y chromium-browser
-
-      - name: 📦 Install NPM dependencies
+      - name: 📦 Instalar dependencias
         run: npm ci
 
-      - name: 🚀 Run scraper → Google Sheets
-        env:
-          SHEETS_CREDENTIALS: ${{ secrets.SHEETS_CREDENTIALS }}
-          SHEET_ID:            ${{ secrets.SHEET_ID }}
-          GITHUB_ACTIONS:      true
-          PUPPETEER_EXECUTABLE_PATH: /usr/bin/chromium-browser
+      - name: 🚀 Ejecutar scraper → Google Sheets
         run: npm run test-scraper
