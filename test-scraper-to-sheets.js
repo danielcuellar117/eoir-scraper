@@ -67,8 +67,20 @@ let args = [
   '--disable-features=IsolateOrigins,site-per-process',
   '--window-size=1920,1080',
   '--start-maximized',
-  '--disable-blink-features=AutomationControlled'
+  '--disable-blink-features=AutomationControlled',
+  '--headless=new'
 ];
+
+// Si no se define PUPPETEER_EXECUTABLE_PATH, usamos el default de Chrome local
+if (!executablePath) {
+  executablePath = 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'; // Windows local
+}
+
+if (isGH) {
+  // GitHub Actions en Windows usa esta misma ruta, ya viene preinstalado
+  executablePath = 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
+ 
+}
 
 console.log('⚙️ Usando executablePath:', executablePath);
 
@@ -76,7 +88,7 @@ const browser = await puppeteer.launch({
   executablePath,
   args,
   ignoreDefaultArgs: ['--enable-automation'],
-  headless: false,
+  headless: true,
   defaultViewport: null
 });
 
