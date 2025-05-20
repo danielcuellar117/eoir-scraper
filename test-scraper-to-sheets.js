@@ -58,9 +58,9 @@ puppeteer.use(Stealth());
   let executablePath = process.env.PUPPETEER_EXECUTABLE_PATH || null;
   const args = ['--no-sandbox','--disable-setuid-sandbox','--disable-dev-shm-usage'];
   if (isGH) {
-    executablePath = '/usr/bin/chromium-browser';
-    args.push('--headless=new');
-  } else if (!executablePath) {
+  executablePath = '/usr/bin/chromium-browser';
+  args.push('--headless=new');
+} else if (!executablePath) {
     executablePath = await chromium.executablePath;
   }
   if (!executablePath) {
