@@ -38,13 +38,33 @@ try {
   await page.screenshot({ path: `${prefix}-03_a_number_filled.png`, fullPage: true });
 
   // 4. Enviar formulario
-  await page.click('#btn_submit');
-  try {
-    await page.waitForNavigation({ waitUntil: 'networkidle0', timeout: 10000 });
-  } catch (e) {
-    console.warn(`⚠️ Timeout esperando navegación tras submit (${a_number})`);
-  }
-  await page.screenshot({ path: `${prefix}-04_after_submit.png`, fullPage: true });
+// 4. Scroll hasta el botón y esperar que esté interactivo
+await page.evaluate(() => {
+  const btn = document.querySelector('#btn_submit');
+  if (btn) btn.scrollIntoView({ behavior: 'smooth', block: 'center' });
+});
+await page.waitForTimeout(500);
+
+// Simula movimiento de mouse sobre el botón
+const submitBtn = await page.$('#btn_submit');
+if (!submitBtn) throw new Error('❌ Botón de envío (#btn_submit) no encontrado');
+
+const box = await submitBtn.boundingBox();
+await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+await page.waitForTimeout(300);
+
+// Clic físico con delay (más humano)
+await submitBtn.click({ delay: 100 });
+
+try {
+  await page.waitForNavigation({ waitUntil: 'networkidle0', timeout: 15000 });
+  await page.screenshot({ path: `output-${a_number}-05_after_submit.png`, fullPage: true });
+  console.log('✅ Envío completado y navegación confirmada');
+} catch (err) {
+  await page.screenshot({ path: `output-${a_number}-05_submit_timeout.png`, fullPage: true });
+  throw new Error(`❌ Timeout después del clic en Enviar para el A-Number ${a_number}`);
+}
+
 
   // 5. Esperar que el bloque de resultados esté visible
   try {
