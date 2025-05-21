@@ -1,4 +1,5 @@
 const fs = require('fs');
+const { timeout } = require('puppeteer');
 
 module.exports.run = async function(page, a_number) {
   const prefix = `output-${a_number}`;
@@ -45,7 +46,7 @@ await page.screenshot({ path: `${prefix}-03_a_number_ingresado.png`, fullPage: t
 
 // 4. Enviar formulario y esperar resultado
 await page.screenshot({ path: `${prefix}-04_antes_de_enviar.png`, fullPage: true });
-await page.waitForNavigation({ waitUntil: 'networkidle0' });
+await page.waitForNavigation({ waitUntil: 'networkidle0', timeout: 10000 });
 await page.screenshot({ path: `${prefix}-05_despues_de_enviar.png`, fullPage: true });
 
   // 5. Esperar que el bloque de resultados esté visible
