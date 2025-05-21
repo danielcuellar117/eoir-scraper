@@ -32,20 +32,26 @@ try {
 for (let i = 0; i < a_number.length; i++) {
   const selector = `input[id$="-${i}"]`;
   await page.waitForSelector(selector, { visible: true });
-
-  if (i === a_number.length - 1) {
-    await page.type(selector, a_number[i]);
-    await new Promise(resolve => setTimeout(resolve, 100));
-    await page.keyboard.press('Enter');
-  } else {
-    await page.type(selector, a_number[i]);
-  }
+  await page.type(selector, a_number[i]);
 }
 await page.screenshot({ path: `${prefix}-03_a_number_ingresado.png`, fullPage: true });
 
-
-// 4. Enviar formulario y esperar resultado
+// 4. Scroll hasta el botón, simular clic humano, y esperar navegación
 await page.screenshot({ path: `${prefix}-04_antes_de_enviar.png`, fullPage: true });
+
+const submitBtn = await page.$('#btn_submit');
+if (!submitBtn) throw new Error('❌ Botón de envío (#btn_submit) no encontrado');
+
+// Asegurarse que esté visible y simular clic real
+await page.evaluate(() => {
+  const btn = document.querySelector('#btn_submit');
+  if (btn) btn.scrollIntoView({ behavior: 'smooth', block: 'center' });
+});
+const box = await submitBtn.boundingBox();
+await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+await new Promise(resolve => setTimeout(resolve, 300));
+await submitBtn.click({ delay: 100 });
+
 await page.waitForNavigation({ waitUntil: 'networkidle0', timeout: 10000 });
 await page.screenshot({ path: `${prefix}-05_despues_de_enviar.png`, fullPage: true });
 
