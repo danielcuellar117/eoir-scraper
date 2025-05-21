@@ -29,35 +29,14 @@ module.exports.run = async function (page, a_number) {
   }
   await page.screenshot({ path: `${prefix}-03_a_number_filled.png`, fullPage: true });
 
-  // 4. Guardar HTML antes del envío
-const htmlBefore = await page.content();
-fs.writeFileSync(`output-${a_number}-04_before_submit.html`, htmlBefore);
-
-// Simular scroll + mouse + clic más humano
-await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
-await page.waitForTimeout(500);
-
-const submitBtn = await page.$('#btn_submit');
-const boundingBox = await submitBtn.boundingBox();
-await page.mouse.move(
-  boundingBox.x + boundingBox.width / 2,
-  boundingBox.y + boundingBox.height / 2
-);
-await page.waitForTimeout(300);
-await submitBtn.click({ delay: 100 });
-
-try {
-  await page.waitForNavigation({ waitUntil: 'networkidle0', timeout: 15000 });
-} catch (e) {
-  console.warn(`⚠️ Timeout esperando navegación tras submit (${a_number})`);
-}
-
-// 5. Guardar HTML después del envío
-const htmlAfter = await page.content();
-fs.writeFileSync(`output-${a_number}-05_after_submit.html`, htmlAfter);
-
-// Screenshot también
-await page.screenshot({ path: `output-${a_number}-05_after_submit_
+  // 4. Enviar formulario
+  await page.click('#btn_submit');
+  try {
+    await page.waitForNavigation({ waitUntil: 'networkidle0', timeout: 10000 });
+  } catch (e) {
+    console.warn(`⚠️ Timeout esperando navegación tras submit (${a_number})`);
+  }
+  await page.screenshot({ path: `${prefix}-04_after_submit.png`, fullPage: true });
 
   // 5. Esperar que el bloque de resultados esté visible
   try {
