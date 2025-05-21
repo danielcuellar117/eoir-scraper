@@ -38,12 +38,10 @@ try {
   await page.screenshot({ path: `${prefix}-03_a_number_filled.png`, fullPage: true });
 
   // 4. Enviar formulario
-// 4. Scroll hasta el botón y esperar que esté interactivo
-await page.evaluate(() => {
-  const btn = document.querySelector('#btn_submit');
-  if (btn) btn.scrollIntoView({ behavior: 'smooth', block: 'center' });
-});
-await page.waitForTimeout(500);
+ await Promise.all([
+    page.waitForNavigation({ waitUntil: 'networkidle0' }),
+    page.$eval('#btn_submit', btn => btn.click())
+  ]);
 
 // Simula movimiento de mouse sobre el botón
 const submitBtn = await page.$('#btn_submit');
