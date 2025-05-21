@@ -28,15 +28,15 @@ try {
   console.warn('⚠️ No se encontró el botón ACEPTO o ya fue aceptado');
 }
 
-// 3. Ingresar el A-Number dígito a dígito
+/// 3. Ingresar el A-Number dígito a dígito
 for (let i = 0; i < a_number.length; i++) {
   const selector = `input[id$="-${i}"]`;
   await page.waitForSelector(selector, { visible: true });
 
   if (i === a_number.length - 1) {
-    // Último dígito: escribimos y presionamos Enter
-    await page.focus(selector);
-    await page.keyboard.type(a_number[i]);
+    // Último dígito: escribimos, esperamos y presionamos Enter
+    await page.type(selector, a_number[i]);
+    await page.waitForTimeout(100);
     await page.keyboard.press('Enter');
   } else {
     await page.type(selector, a_number[i]);
