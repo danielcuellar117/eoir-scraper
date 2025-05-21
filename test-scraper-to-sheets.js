@@ -1,4 +1,3 @@
-// test-scraper-to-sheets.js
 require('dotenv').config();
 
 const { GoogleSpreadsheet } = require('google-spreadsheet');
@@ -14,7 +13,7 @@ puppeteer.use(Stealth());
   // 1) Autenticación manual con JWT
   // ──────────────────────────────────────────────────────────────────────────
   console.log('🔑 Autenticando en Google Sheets con JWT…');
-const creds = JSON.parse(Buffer.from(process.env.SHEETS_CREDENTIALS).toString());
+  const creds = JSON.parse(Buffer.from(process.env.SHEETS_CREDENTIALS).toString());
   const jwtClient = new JWT({
     email: creds.client_email,
     key:   creds.private_key.replace(/\\n/g, '\n'),
@@ -22,7 +21,6 @@ const creds = JSON.parse(Buffer.from(process.env.SHEETS_CREDENTIALS).toString())
   });
   await jwtClient.authorize();
 
-  // 2) Instanciamos el doc y le inyectamos nuestro cliente JWT
   const doc = new GoogleSpreadsheet(process.env.SHEET_ID);
   doc.auth = jwtClient;
   await doc.loadInfo();
@@ -36,11 +34,9 @@ const creds = JSON.parse(Buffer.from(process.env.SHEETS_CREDENTIALS).toString())
     process.exit(1);
   }
 
-  // 2.a) Aseguramos headers en “Resultados”
   await resultados.loadHeaderRow();
   console.log('🗂️ Headers de "Resultados":', resultados.headerValues);
 
-  // 3) Leemos las filas de “Entradas” y averiguamos columna A_Number
   const rowsIn = await entradas.getRows();
   console.log(`✅ Filas leídas en "Entradas": ${rowsIn.length}`);
   console.log('🗂️ Encabezados de "Entradas":', entradas.headerValues);
@@ -51,55 +47,37 @@ const creds = JSON.parse(Buffer.from(process.env.SHEETS_CREDENTIALS).toString())
   }
   console.log('✅ A-Number en column index:', aColIndex, 'header:', entradas.headerValues[aColIndex]);
 
-// 4) Arrancamos Puppeteer (local vs GH Actions - Windows con Chrome)
-console.log('🚀 Iniciando navegador…');
-const isGH = Boolean(process.env.GITHUB_ACTIONS);
+  // ──────────────────────────────────────────────────────────────────────────
+  // 4) Lanzamos Puppeteer (modo no-headless en entorno Linux con XVFB)
+  // ──────────────────────────────────────────────────────────────────────────
+  console.log('🚀 Iniciando navegador…');
 
-let executablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
-let args = [
-  '--no-sandbox',
-  '--disable-setuid-sandbox',
-  '--disable-dev-shm-usage',
-  '--disable-gpu',
-  '--disable-infobars',
-  '--disable-accelerated-2d-canvas',
-  '--disable-features=IsolateOrigins,site-per-process',
-  '--window-size=1920,1080',
-  '--start-maximized',
-  '--disable-blink-features=AutomationControlled'
-];
+  const browser = await puppeteer.launch({
+    headless: false,
+    args: [
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+      '--disable-dev-shm-usage',
+      '--disable-gpu',
+      '--disable-infobars',
+      '--disable-accelerated-2d-canvas',
+      '--disable-features=IsolateOrigins,site-per-process',
+      '--window-size=1920,1080',
+      '--start-maximized',
+      '--disable-blink-features=AutomationControlled'
+    ],
+    ignoreDefaultArgs: ['--enable-automation'],
+    defaultViewport: null
+  });
 
-// Si no se define PUPPETEER_EXECUTABLE_PATH, usamos el default de Chrome local
-if (!executablePath) {
-  executablePath = 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'; // Windows local
-}
+  const [page] = await browser.pages();
 
-if (isGH) {
-  // GitHub Actions en Windows usa esta misma ruta, ya viene preinstalado
-  executablePath = 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
- 
-}
+  await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36');
+  await page.setExtraHTTPHeaders({ 'Accept-Language': 'en-US,en;q=0.9' });
 
-console.log('⚙️ Usando executablePath:', executablePath);
-
-const browser = await puppeteer.launch({
-  executablePath,
-  args,
-  ignoreDefaultArgs: ['--enable-automation'],
-  headless: false,
-  defaultViewport: null
-});
-
-const [page] = await browser.pages();
-
-// ⛑️ Configuramos User-Agent y headers personalizados para parecer navegador real
-await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36');
-await page.setExtraHTTPHeaders({
-  'Accept-Language': 'en-US,en;q=0.9'
-});
-
-
-  // 5) Iteramos cada A-Number, scrapeamos y volcamos en “Resultados”
+  // ──────────────────────────────────────────────────────────────────────────
+  // 5) Scrapeamos cada A-Number
+  // ──────────────────────────────────────────────────────────────────────────
   for (let i = 0; i < rowsIn.length; i++) {
     const rawANum = String(rowsIn[i]._rawData[aColIndex] || '').trim();
     const aNumber = rawANum.replace(/\D/g, '');
@@ -116,7 +94,6 @@ await page.setExtraHTTPHeaders({
       console.log('📋 Raw extraído:\n', await page.$eval('div.p-8', el => el.innerText.trim()));
       console.log('  Objeto parseado:', data);
 
-      // 6.a) Si OK, agregamos fila completa
       await resultados.addRow({
         A_Number:       rawANum,
         Nombre:         data.nombre,
@@ -131,7 +108,6 @@ await page.setExtraHTTPHeaders({
       console.log(`✅ Fila ${i+1} agregada con datos`);
 
     } catch (err) {
-      // 6.b) Si hay error (p. ej. timeout), volcamos sólo A_Number + mensaje en Estado_Caso
       console.error(`❌ Error en scraper.run() fila ${i+1} (${aNumber}):`, err.message);
       await resultados.addRow({
         A_Number:    rawANum,

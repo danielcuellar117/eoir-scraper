@@ -1,4 +1,4 @@
-name: EOIR Scraper → Google Sheets (Windows)
+name: EOIR Scraper → Google Sheets (Linux + XVFB)
 
 on:
   workflow_dispatch:
@@ -7,15 +7,13 @@ on:
 
 jobs:
   scrape:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     timeout-minutes: 30
 
     env:
       SHEETS_CREDENTIALS: ${{ secrets.SHEETS_CREDENTIALS }}
       SHEET_ID: ${{ secrets.SHEET_ID }}
       GITHUB_ACTIONS: true
-      # Ruta típica de instalación de Google Chrome en Windows
-      PUPPETEER_EXECUTABLE_PATH: 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'
 
     steps:
       - name: 📥 Checkout del repositorio
@@ -27,8 +25,11 @@ jobs:
           node-version: '18'
           cache: 'npm'
 
-      - name: 📦 Instalar dependencias
-        run: npm ci
+      - name: 🧱 Instalar dependencias y XVFB
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb
+          npm ci
 
-      - name: 🚀 Ejecutar scraper → Google Sheets
-        run: npm run test-scraper
+      - name: 🚀 Ejecutar scraper → Google Sheets con XVFB
+        run: xvfb-run --auto-servernum --server-args='-screen 0 1920x1080x24' npm run test-scraper
