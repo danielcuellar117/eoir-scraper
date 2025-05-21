@@ -59,7 +59,7 @@ puppeteer.use(Stealth());
 
 
 const browser = await puppeteer.launch({
-  executablePath: '/opt/google/chrome/chrome', // Chrome real
+  executablePath: 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe', // Chrome real
   headless: false,
   args: [
     '--no-sandbox',
