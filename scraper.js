@@ -1,3 +1,4 @@
+const { timeout } = require("puppeteer");
 
 module.exports.run = async function(page, a_number) {
   // 1. Navegar a la página
@@ -23,8 +24,12 @@ module.exports.run = async function(page, a_number) {
 
   // 4. Enviar formulario y esperar resultado
 await page.click('#btn_submit'); // clic explícito
-await page.waitForNavigation({ waitUntil: 'networkidle0' });
-
+await page.waitForNavigation({ 
+  waitUntil: 'networkidle0',
+  timeout: 10000
+ });
+  await page.screenshot({ path: `output-${a_number}.png`, fullPage: true });
+  await page.pdf({ path: `output-${a_number}.pdf`, format: 'A4' });
   // 5. Esperar que el bloque de resultados esté visible
   await page.waitForSelector('div.p-8', { visible: true });
 
@@ -83,10 +88,6 @@ await page.waitForNavigation({ waitUntil: 'networkidle0' });
       telefono = lines[i + 1] || '';
     }
   }
-  
-  await page.screenshot({ path: `output-${a_number}.png`, fullPage: true });
-  await page.pdf({ path: `output-${a_number}.pdf`, format: 'A4' });
-
 
   return {
     nombre,
