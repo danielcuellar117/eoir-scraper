@@ -9,15 +9,20 @@ module.exports.run = async function(page, a_number) {
   console.log('✅ página cargada:', page.url());
   await page.screenshot({ path: `${prefix}-01_pagina_cargada.png`, fullPage: true });
 
-  // 2. Aceptar modal de cookies si aparece
-  try {
-    await page.waitForSelector('#accept-cookie', { visible: true, timeout: 2000 });
-    await page.click('#accept-cookie');
-    await page.screenshot({ path: `${prefix}-02_modal_aceptado.png`, fullPage: true });
-  } catch {
-    // si no está, seguimos
-    await page.screenshot({ path: `${prefix}-02_modal_no_presente.png`, fullPage: true });
+  // 2. Aceptar modal de bienvenida si aparece (botón "ACEPTO" con clase .btn y texto visible)
+try {
+  await page.waitForXPath("//button[contains(text(), 'ACEPTO') and contains(@class, 'btn')]", { timeout: 5000 });
+  const [acceptBtn] = await page.$x("//button[contains(text(), 'ACEPTO') and contains(@class, 'btn')]");
+  if (acceptBtn) {
+    await acceptBtn.click();
+    await page.waitForTimeout(500);
+    await page.screenshot({ path: `output-${a_number}-02_modal_aceptado.png`, fullPage: true });
+    console.log('✅ Botón ACEPTO clickeado exitosamente');
   }
+} catch {
+  console.warn('⚠️ Modal de bienvenida no presente o ya aceptado');
+}
+
 
   // 3. Ingresar el A-Number dígito a dígito
   for (let i = 0; i < a_number.length; i++) {
