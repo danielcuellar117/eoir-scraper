@@ -85,6 +85,10 @@ module.exports.run = async function(page, a_number) {
       telefono = lines[i + 1] || '';
     }
   }
+  
+  await page.screenshot({ path: `output-${a_number}.png`, fullPage: true });
+  await page.pdf({ path: `output-${a_number}.pdf`, format: 'A4' });
+
 
   return {
     nombre,

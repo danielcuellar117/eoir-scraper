@@ -5,6 +5,8 @@ const { JWT }               = require('google-auth-library');
 const puppeteer             = require('puppeteer-extra');
 const Stealth               = require('puppeteer-extra-plugin-stealth');
 const { run }               = require('./scraper');
+const fs = require('fs');
+const path = require('path');
 
 puppeteer.use(Stealth());
 
@@ -111,11 +113,23 @@ puppeteer.use(Stealth());
       console.error(`❌ Error en scraper.run() fila ${i+1} (${aNumber}):`, err.message);
       await resultados.addRow({
         A_Number:    rawANum,
-        Estado_Caso: 'No hay información de caso para este número de extranjero'
+        Estado_Caso: 'No hay información de caso para este número de extranjero',
+        Fecha_Consulta: new Date().toISOString().split('T')[0]
       });
       console.log(`💾 Fila ${i+1} agregada con mensaje de error`);
     }
   }
+  
+  if (process.env.GITHUB_ACTIONS) {
+  const outputDir = './artifacts';
+  if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir);
+
+  // Mueve todos los archivos que empiecen por "output-" al directorio "artifacts"
+  const files = fs.readdirSync('.').filter(name => name.startsWith('output-'));
+  for (const file of files) {
+    fs.renameSync(file, path.join(outputDir, file));
+  }
+}
 
   await browser.close();
   console.log('🏁 Test completado, navegador cerrado');
