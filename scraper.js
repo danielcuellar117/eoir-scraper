@@ -12,20 +12,11 @@ module.exports.run = async function (page, a_number) {
 
 // 2. Aceptar el modal de descargo de responsabilidad (botón "Acepto" con clase .btn)
 try {
-  await page.waitForSelector('.btn', { visible: true, timeout: 5000 });
-
-  const acceptButtons = await page.$x("//button[contains(text(), 'Acepto')]");
-  if (acceptButtons.length > 0) {
-    await acceptButtons[0].click();
-    await page.waitForTimeout(500);
-    await page.screenshot({ path: `output-${a_number}-02_accepted_modal.png`, fullPage: true });
-    console.log('✅ Modal de bienvenida aceptado');
-  } else {
-    console.warn('⚠️ Botón "Acepto" no encontrado por XPath.');
+    await page.waitForSelector('#accept-cookie', { visible: true, timeout: 2000 });
+    await page.click('#accept-cookie');
+  } catch {
+    // si no está, seguimos
   }
-} catch {
-  console.warn('⚠️ No se encontró el modal de bienvenida (o ya se aceptó).');
-}
 
 
   // 3. Ingresar el A-Number dígito a dígito
