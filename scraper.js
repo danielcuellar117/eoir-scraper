@@ -27,22 +27,26 @@ try {
   console.warn('⚠️ No se encontró el botón ACEPTO o ya fue aceptado');
 }
 
+// 3. Ingresar el A-Number dígito a dígito
+for (let i = 0; i < a_number.length; i++) {
+  const selector = `input[id$="-${i}"]`;
+  await page.waitForSelector(selector, { visible: true });
 
-  // 3. Ingresar el A-Number dígito a dígito
-  for (let i = 0; i < a_number.length; i++) {
-    const selector = `input[id$="-${i}"]`;
-    await page.waitForSelector(selector, { visible: true });
+  if (i === a_number.length - 1) {
+    // Último dígito: escribimos y presionamos Enter
+    await page.focus(selector);
+    await page.keyboard.type(a_number[i]);
+    await page.keyboard.press('Enter');
+  } else {
     await page.type(selector, a_number[i]);
   }
-  await page.screenshot({ path: `${prefix}-03_a_number_ingresado.png`, fullPage: true });
+}
+await page.screenshot({ path: `${prefix}-03_a_number_ingresado.png`, fullPage: true });
 
-  // 4. Enviar formulario y esperar resultado
-  await page.screenshot({ path: `${prefix}-04_antes_de_enviar.png`, fullPage: true });
-  await Promise.all([
-    page.waitForNavigation({ waitUntil: 'networkidle0' }),
-    page.$eval('#btn_submit', btn => btn.click())
-  ]);
-  await page.screenshot({ path: `${prefix}-05_despues_de_enviar.png`, fullPage: true });
+// 4. Enviar formulario y esperar resultado
+await page.screenshot({ path: `${prefix}-04_antes_de_enviar.png`, fullPage: true });
+await page.waitForNavigation({ waitUntil: 'networkidle0' });
+await page.screenshot({ path: `${prefix}-05_despues_de_enviar.png`, fullPage: true });
 
   // 5. Esperar que el bloque de resultados esté visible
   await page.waitForSelector('div.p-8', { visible: true });
