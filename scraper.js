@@ -8,7 +8,7 @@ module.exports.run = async function(page, a_number) {
 
   // 2. Aceptar modal de cookies si aparece
   try {
-    await page.waitForSelector('#accept-cookie', { visible: true, timeout: 3000 });
+    await page.waitForSelector('#accept-cookie', { visible: true, timeout: 2000 });
     await page.click('#accept-cookie');
   } catch {
     // si no está, seguimos
