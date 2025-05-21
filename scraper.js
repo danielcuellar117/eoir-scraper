@@ -36,24 +36,36 @@ for (let i = 0; i < a_number.length; i++) {
 }
 await page.screenshot({ path: `${prefix}-03_a_number_ingresado.png`, fullPage: true });
 
-// 4. Scroll hasta el botón, simular clic humano, y esperar navegación
+// 4. Scroll al botón y esperar a que esté interactivo
 await page.screenshot({ path: `${prefix}-04_antes_de_enviar.png`, fullPage: true });
 
-const submitBtn = await page.$('#btn_submit');
-if (!submitBtn) throw new Error('❌ Botón de envío (#btn_submit) no encontrado');
-
-// Asegurarse que esté visible y simular clic real
 await page.evaluate(() => {
   const btn = document.querySelector('#btn_submit');
   if (btn) btn.scrollIntoView({ behavior: 'smooth', block: 'center' });
 });
+await new Promise(resolve => setTimeout(resolve, 500));
+
+const submitBtn = await page.$('#btn_submit');
+if (!submitBtn) throw new Error('❌ Botón #btn_submit no encontrado');
+
 const box = await submitBtn.boundingBox();
+if (!box) throw new Error('❌ No se pudo obtener la posición del botón #btn_submit');
+
+// Simula movimiento del mouse hacia el botón
 await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
 await new Promise(resolve => setTimeout(resolve, 300));
+
+// Clic físico con delay
 await submitBtn.click({ delay: 100 });
 
-await page.waitForNavigation({ waitUntil: 'networkidle0', timeout: 10000 });
-await page.screenshot({ path: `${prefix}-05_despues_de_enviar.png`, fullPage: true });
+try {
+  await page.waitForNavigation({ waitUntil: 'networkidle0', timeout: 10000 });
+  await page.screenshot({ path: `${prefix}-05_despues_de_enviar.png`, fullPage: true });
+  console.log('✅ Envío exitoso, se detectó navegación');
+} catch (e) {
+  await page.screenshot({ path: `${prefix}-05_submit_timeout.png`, fullPage: true });
+  console.warn(`⚠️ Timeout esperando navegación después del clic en Enviar`);
+}
 
   // 5. Esperar que el bloque de resultados esté visible
   await page.waitForSelector('div.p-8', { visible: true });
