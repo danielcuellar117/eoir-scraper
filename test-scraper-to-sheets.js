@@ -7,6 +7,8 @@ const Stealth               = require('puppeteer-extra-plugin-stealth');
 const { run }               = require('./scraper');
 const fs = require('fs');
 const path = require('path');
+const { executablePath } = require('puppeteer');
+
 
 puppeteer.use(Stealth());
 
@@ -53,6 +55,8 @@ puppeteer.use(Stealth());
   // 4) Lanzamos Puppeteer (modo no-headless en entorno Linux con XVFB)
   // ──────────────────────────────────────────────────────────────────────────
   console.log('🚀 Iniciando navegador…');
+  console.log('🔍 Chromium executable path:', executablePath());
+
 
   const browser = await puppeteer.launch({
     headless: false,
@@ -76,6 +80,10 @@ puppeteer.use(Stealth());
 
   await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36');
   await page.setExtraHTTPHeaders({ 'Accept-Language': 'en-US,en;q=0.9' });
+
+  const version = await browser.version();
+  console.log('🌐 Versión de Chromium lanzada:', version);
+
 
   // ──────────────────────────────────────────────────────────────────────────
   // 5) Scrapeamos cada A-Number

@@ -22,10 +22,8 @@ module.exports.run = async function(page, a_number) {
   }
 
   // 4. Enviar formulario y esperar resultado
-  await Promise.all([
-    page.waitForNavigation({ waitUntil: 'networkidle0' }),
-    page.$eval('#btn_submit', btn => btn.click())
-  ]);
+await page.click('#btn_submit'); // clic explícito
+await page.waitForNavigation({ waitUntil: 'networkidle0' });
 
   // 5. Esperar que el bloque de resultados esté visible
   await page.waitForSelector('div.p-8', { visible: true });
