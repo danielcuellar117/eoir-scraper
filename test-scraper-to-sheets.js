@@ -74,7 +74,10 @@ const browser = await puppeteer.launch({
     '--disable-blink-features=AutomationControlled'
   ],
   ignoreDefaultArgs: ['--enable-automation'],
-  defaultViewport: null
+  defaultViewport: {
+    width: 3000,
+    height: 3000
+  }
 });
 
 
