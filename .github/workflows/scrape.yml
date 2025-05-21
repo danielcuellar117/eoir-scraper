@@ -28,9 +28,5 @@ jobs:
       - name: 📦 Instalar dependencias
         run: npm ci
 
-      - name: 📤 Subir capturas y PDFs como artefactos
-        uses: actions/upload-artifact@v4
-        with:
-          name: resultados-eoir
-          path: ./artifacts
-
+      - name: 🚀 Ejecutar scraper → Google Sheets
+        run: npm run test-scraper
