@@ -25,11 +25,14 @@ jobs:
           node-version: '18'
           cache: 'npm'
 
-      - name: 🧱 Instalar dependencias y XVFB
+      - name: 🧱 Instalar Chrome, dependencias y XVFB
         run: |
-          sudo apt-get update
-          sudo apt-get install -y xvfb
-          npm ci
+              sudo apt-get update
+              sudo apt-get install -y wget xvfb
+              wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+              sudo apt install -y ./google-chrome-stable_current_amd64.deb
+              npm ci
+
 
       - name: 🚀 Ejecutar scraper → Google Sheets con XVFB
         run: xvfb-run --auto-servernum --server-args='-screen 0 1920x1080x24' npm run test-scraper

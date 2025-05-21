@@ -58,23 +58,25 @@ puppeteer.use(Stealth());
   console.log('🔍 Chromium executable path:', executablePath());
 
 
-  const browser = await puppeteer.launch({
-    headless: false,
-    args: [
-      '--no-sandbox',
-      '--disable-setuid-sandbox',
-      '--disable-dev-shm-usage',
-      '--disable-gpu',
-      '--disable-infobars',
-      '--disable-accelerated-2d-canvas',
-      '--disable-features=IsolateOrigins,site-per-process',
-      '--window-size=3000,3000',
-      '--start-maximized',
-      '--disable-blink-features=AutomationControlled'
-    ],
-    ignoreDefaultArgs: ['--enable-automation'],
-    defaultViewport: null
-  });
+const browser = await puppeteer.launch({
+  executablePath: '/opt/google/chrome/chrome', // Chrome real
+  headless: false,
+  args: [
+    '--no-sandbox',
+    '--disable-setuid-sandbox',
+    '--disable-dev-shm-usage',
+    '--disable-gpu',
+    '--disable-infobars',
+    '--disable-accelerated-2d-canvas',
+    '--disable-features=IsolateOrigins,site-per-process',
+    '--window-size=3000,3000',
+    '--start-maximized',
+    '--disable-blink-features=AutomationControlled'
+  ],
+  ignoreDefaultArgs: ['--enable-automation'],
+  defaultViewport: null
+});
+
 
   const [page] = await browser.pages();
 
