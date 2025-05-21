@@ -3,7 +3,6 @@ require('dotenv').config();
 
 const { GoogleSpreadsheet } = require('google-spreadsheet');
 const { JWT }               = require('google-auth-library');
-const chromium              = require('chrome-aws-lambda');
 const puppeteer             = require('puppeteer-extra');
 const Stealth               = require('puppeteer-extra-plugin-stealth');
 const { run }               = require('./scraper');
@@ -92,6 +91,12 @@ const browser = await puppeteer.launch({
 });
 
 const [page] = await browser.pages();
+
+// ⛑️ Configuramos User-Agent y headers personalizados para parecer navegador real
+await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36');
+await page.setExtraHTTPHeaders({
+  'Accept-Language': 'en-US,en;q=0.9'
+});
 
 
   // 5) Iteramos cada A-Number, scrapeamos y volcamos en “Resultados”
