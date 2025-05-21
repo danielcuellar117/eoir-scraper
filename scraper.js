@@ -9,18 +9,22 @@ module.exports.run = async function(page, a_number) {
   console.log('✅ página cargada:', page.url());
   await page.screenshot({ path: `${prefix}-01_pagina_cargada.png`, fullPage: true });
 
-  // 2. Aceptar modal de bienvenida si aparece (botón "ACEPTO" con clase .btn y texto visible)
+// 2. Aceptar modal de bienvenida si aparece (clic directo desde el DOM)
 try {
-  await page.waitForXPath("//button[contains(text(), 'ACEPTO') and contains(@class, 'btn')]", { timeout: 5000 });
-  const [acceptBtn] = await page.$x("//button[contains(text(), 'ACEPTO') and contains(@class, 'btn')]");
-  if (acceptBtn) {
-    await acceptBtn.click();
-    await page.waitForTimeout(500);
-    await page.screenshot({ path: `output-${a_number}-02_modal_aceptado.png`, fullPage: true });
-    console.log('✅ Botón ACEPTO clickeado exitosamente');
-  }
+  await page.waitForSelector('button.btn', { timeout: 5000 });
+
+  // Hacer clic directo en el primer botón con clase .btn que diga "ACEPTO"
+  await page.evaluate(() => {
+    const buttons = Array.from(document.querySelectorAll('button.btn'));
+    const acceptBtn = buttons.find(btn => btn.innerText.trim().toUpperCase() === 'ACEPTO');
+    if (acceptBtn) acceptBtn.click();
+  });
+
+  await page.waitForTimeout(500);
+  await page.screenshot({ path: `output-${a_number}-02_modal_aceptado.png`, fullPage: true });
+  console.log('✅ Botón ACEPTO clickeado vía evaluación directa');
 } catch {
-  console.warn('⚠️ Modal de bienvenida no presente o ya aceptado');
+  console.warn('⚠️ No se encontró el botón ACEPTO o ya fue aceptado');
 }
 
 
