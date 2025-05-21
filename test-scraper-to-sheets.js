@@ -59,7 +59,7 @@ puppeteer.use(Stealth());
 
 
 const browser = await puppeteer.launch({
-  executablePath: 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe', // Chrome real
+  executablePath: 'C:\Users\runneradmin\.cache\puppeteer\chrome\win64-136.0.7103.94\chrome-win64\chrome.exe', // Chrome real
   headless: false,
   args: [
     '--no-sandbox',
@@ -83,11 +83,10 @@ const browser = await puppeteer.launch({
 
   const [page] = await browser.pages();
 
-  await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36');
-  await page.setExtraHTTPHeaders({ 'Accept-Language': 'en-US,en;q=0.9' });
+  
 
   const version = await browser.version();
-  console.log('🌐 Versión de Chromium lanzada:', version);
+  console.log('🌐 Versión de navegador lanzada:', version);
 
 
   // ──────────────────────────────────────────────────────────────────────────
