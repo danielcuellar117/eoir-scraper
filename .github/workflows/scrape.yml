@@ -28,10 +28,6 @@ jobs:
       - name: 📦 Instalar dependencias
         run: npm ci
 
-
-      - name: 🚀 Ejecutar scraper → Google Sheets con XVFB
-        run: xvfb-run --auto-servernum --server-args='-screen 0 1920x1080x24' npm run test-scraper
-        
       - name: 📤 Subir capturas y PDFs como artefactos
         uses: actions/upload-artifact@v4
         with:
