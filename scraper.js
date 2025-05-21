@@ -10,16 +10,23 @@ module.exports.run = async function (page, a_number) {
   console.log('✅ página cargada:', page.url());
   await page.screenshot({ path: `${prefix}-01_home.png`, fullPage: true });
 
- // 2. Aceptar el modal de descargo de responsabilidad (botón “ACEPTO”)
+// 2. Aceptar el modal de descargo de responsabilidad (botón "Acepto" con clase .btn)
 try {
-  await page.waitForSelector('#accept', { visible: true, timeout: 5000 });
-  await page.click('#accept');
-  await page.waitForTimeout(500);
-  await page.screenshot({ path: `output-${a_number}-02_accepted_modal.png`, fullPage: true });
-  console.log('✅ Modal de bienvenida aceptado');
+  await page.waitForSelector('.btn', { visible: true, timeout: 5000 });
+
+  const acceptButtons = await page.$x("//button[contains(text(), 'Acepto')]");
+  if (acceptButtons.length > 0) {
+    await acceptButtons[0].click();
+    await page.waitForTimeout(500);
+    await page.screenshot({ path: `output-${a_number}-02_accepted_modal.png`, fullPage: true });
+    console.log('✅ Modal de bienvenida aceptado');
+  } else {
+    console.warn('⚠️ Botón "Acepto" no encontrado por XPath.');
+  }
 } catch {
-  console.warn('⚠️ No se encontró el modal de bienvenida (probablemente ya se aceptó antes).');
+  console.warn('⚠️ No se encontró el modal de bienvenida (o ya se aceptó).');
 }
+
 
   // 3. Ingresar el A-Number dígito a dígito
   for (let i = 0; i < a_number.length; i++) {
