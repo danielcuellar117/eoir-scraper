@@ -68,7 +68,7 @@ puppeteer.use(Stealth());
       '--disable-infobars',
       '--disable-accelerated-2d-canvas',
       '--disable-features=IsolateOrigins,site-per-process',
-      '--window-size=1920,1080',
+      '--window-size=3000,3000',
       '--start-maximized',
       '--disable-blink-features=AutomationControlled'
     ],
