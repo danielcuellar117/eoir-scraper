@@ -10,15 +10,16 @@ module.exports.run = async function (page, a_number) {
   console.log('✅ página cargada:', page.url());
   await page.screenshot({ path: `${prefix}-01_home.png`, fullPage: true });
 
-  // 2. Aceptar modal de cookies si aparece
-  try {
-    await page.waitForSelector('#accept-cookie', { visible: true, timeout: 2000 });
-    await page.click('#accept-cookie');
-    await page.waitForTimeout(500);
-    await page.screenshot({ path: `${prefix}-02_cookies_accepted.png`, fullPage: true });
-  } catch {
-    console.log('ℹ️ No se mostró el modal de cookies.');
-  }
+ // 2. Aceptar el modal de descargo de responsabilidad (botón “ACEPTO”)
+try {
+  await page.waitForSelector('#accept', { visible: true, timeout: 5000 });
+  await page.click('#accept');
+  await page.waitForTimeout(500);
+  await page.screenshot({ path: `output-${a_number}-02_accepted_modal.png`, fullPage: true });
+  console.log('✅ Modal de bienvenida aceptado');
+} catch {
+  console.warn('⚠️ No se encontró el modal de bienvenida (probablemente ya se aceptó antes).');
+}
 
   // 3. Ingresar el A-Number dígito a dígito
   for (let i = 0; i < a_number.length; i++) {
